@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta name="format-detection" content="telephone=no"/>
+	<meta name="apple-mobile-app-status-bar-style" content="black" />
+	<meta name="apple-touch-fullscreen" content="YES" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,  minimum-scale=1.0, maximum-scale=1.0" />
+	<title>文字粒子化</title>
+	<link rel="stylesheet" href="main.css">
+</head>
+<body>
+	<div id="fps"></div>
+	<div id="control">
+		<form>
+			<input type="text" id="index" value="" placeholder="输入内容" onkeypress="if(event.keyCode==13) {submitbtn.click();return false;}" >
+			<div class="tip" id="indextip">
+				<p>输入要显示的内容</p>
+			</div>
+			<input type="number" id="fontsize" value="200" placeholder="字体大小">
+			<div class="tip" id="fontsizetip">
+				<p>字体大小（推荐100-300）</p>
+			</div>
+			<input type="text" id="fontfamily" value="微软雅黑" placeholder="字体">
+			<div class="tip" id="fontfamilytip">
+				<p>字体(只要系统有的都可以)</p>
+			</div>
+			<input type="number" id="dotradius" value="5" placeholder="粒子半径">
+			<div class="tip" id="dotradiustip">
+				<p>粒子半径（推荐1-10）</p>
+			</div>
+			<input type="number" id="dotdistance" value="12" placeholder="采样距离">
+			<div class="tip" id="dotdistancetip">
+				<p>采样距离（推荐6-20）</p>
+			</div>
+			<a href="" class="submit" id="submit">修改</a>
+			<div class="hr"></div>
+			<section class="checkboxs">
+			  	<h3>暂停</h3>
+			  	<div class="checkboxTwo">
+			  		<input type="checkbox" value="1" id="pausebtn" name="" />
+				  	<label for="pausebtn"></label>
+			  	</div>
+			</section>
+			<section class="checkboxs">
+			  	<h3>随机彩色</h3>
+			  	<div class="checkboxTwo">
+			  		<input type="checkbox" value="1" id="colorrandom" name="" />
+				  	<label for="colorrandom"></label>
+			  	</div>
+			</section>
+			<section class="checkboxs">
+			  	<h3>随机背景</h3>
+			  	<div class="checkboxTwo">
+			  		<input type="checkbox" value="1" id="backgroundcolorrandom" name="" />
+				  	<label for="backgroundcolorrandom"></label>
+			  	</div>
+			</section>
+			<section class="checkboxs">
+			  	<h3>是否展开</h3>
+			  	<div class="checkboxTwo">
+			  		<input type="checkbox" value="1" id="openshowbtn" name="" checked="checked" />
+				  	<label for="openshowbtn"></label>
+			  	</div>
+			</section>
+			<div class="hr"></div>
+			<section class="checkboxs">
+			  	<h3>循环队列</h3>
+			  	<div class="checkboxTwo">
+			  		<input type="checkbox" value="1" id="queueloopbtn" name="" checked="checked" checked="checked"></label>
+			  		<label for="queueloopbtn">
+			  	</div>
+			</section>
+			<input type="text" id="queueIndex" value="" placeholder="添加队列" onkeypress="if(event.keyCode==13) {queueAdd.click();return false;}" />
+			<a href="" class="submit" id="queueAdd">添加队列</a>
+			<a href="" class="submit" id="queueClear">清空队列</a>
+		</form>
+		<div id="opentip"></div>
+	</div>
+	<div id="container"></div>
+	<script src="js/sketch.min.js"></script>
+	<!-- // <script src="js/main.js"></script> -->
+	// <script src="js/particleChar.js"></script>
+	<script src="js/newDom.js"></script>
+	<!-- // <script src="js/dom.js"></script> -->
+</body>
+</html>
