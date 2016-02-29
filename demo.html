@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta name="format-detection" content="telephone=no"/>
+	<meta name="apple-mobile-app-status-bar-style" content="black" />
+	<meta name="apple-touch-fullscreen" content="YES" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,  minimum-scale=1.0, maximum-scale=1.0" />
+	<title>文字粒子化</title>
+	<link rel="stylesheet" href="css/demo.css">
+	<body>
+
+		<div id="container"></div>
+		<div id="test"></div>
+		<script src="js/sketch.min.js"></script>
+		<script src="js/particleChar.js"></script>
+		<script>
+var pc = new particleChar();
+pc.queueCreate("a","b");
+// var pc2 = new particleChar({container: "test",backgroundColorRandom: true});
+// pc2.queueCreate("这个如果很大会不会卡","3");
+		</script>
+	</body>
+</head>

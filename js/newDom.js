@@ -85,22 +85,16 @@ document.getElementById('queueClear').addEventListener("click",function  (e) {
 pc.queueCreate({
     text: "particleChar",
     fontSize: 250,
-    fontColor: {
-        r: 49,
-        g:59,
-        b: 34,
-    },
+     showOpen: false,
+    // fontColor: "#313B22",
+    fontColor: "#fff",
     backgroundColor: "#B1B8ED",
     dotDistance: 14,
     showTime: 1500,
 },{
     text: "IwYvI",
     fontFamily: "Razer Header Light",
-    fontColor: {
-        r: 238,
-        g:159,
-        b: 134,
-    },
+    fontColor: "#EE9E89",
     showTypeAfter:"bottom",
     dotDistance: 10,
     dotRadius: 2,
@@ -108,14 +102,11 @@ pc.queueCreate({
 },{
     text: "https://github.com/IwYvI",
     fontSize: 160,
+     showOpen: false,
     dotDistance: 6,
     dotRadius: 3,
     fontFamily: "Times New Roman",
-    fontColor: {
-        r: 109,
-        g:159,
-        b: 234,
-    },
+    fontColor: "#6D9FEA",
     backgroundColor: "#B1493F",
     showTime: 3500,
     showTypeBefore:"bottom",
