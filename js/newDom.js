@@ -83,12 +83,12 @@ document.getElementById('queueClear').addEventListener("click",function  (e) {
 });
 
 pc.queueCreate({
-    text: "particleChar",
+    text: "particleChar.js",
     fontSize: 250,
-     showOpen: false,
-    // fontColor: "#313B22",
-    fontColor: "#fff",
+    showOpen: false,
+    fontColor: "#313B22",
     backgroundColor: "#B1B8ED",
+    queueLeave: true,
     dotDistance: 14,
     showTime: 1500,
 },{
@@ -102,12 +102,30 @@ pc.queueCreate({
 },{
     text: "https://github.com/IwYvI",
     fontSize: 160,
-     showOpen: false,
+    showOpen: false,
+    showNext: false,
     dotDistance: 6,
     dotRadius: 3,
     fontFamily: "Times New Roman",
     fontColor: "#6D9FEA",
     backgroundColor: "#B1493F",
-    showTime: 3500,
+    showTime: 0,
     showTypeBefore:"bottom",
+    callbackAfter: function  (a) {
+        a.moveBy(0,-800,-300);
+    }
+},{
+    text: "https://github.com/IwYvI",
+    fontSize: 80,
+    yOffset: -200,
+    showOpen: false,
+    showNext: false,
+    dotDistance: 4,
+    dotRadius: 1,
+    fontFamily: "Times New Roman",
+    fontColor: "#6D9FEA",
+    backgroundColor: "#B1493F",
+    showTime: 3500,
+    showTypeBefore:"nearby",
+
 });

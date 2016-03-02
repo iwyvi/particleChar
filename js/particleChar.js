@@ -31,13 +31,14 @@
 		v1: 0.1,//组成速度
 		v2: 0.1,//散开速度
 		showTime: 700,//展示时间
-		showOpen: true,
-		showNext: true,
+		showOpen: true,//是否展开
+		showNext: true,//是否展示下一个
 		waitTime: 0,//队列间等待时间
 		backgroundColor: "transparent",//背景颜色
 		backgroundColorRandom: false,//是否随机背景颜色
 		showTypeBefore: "spread",//开始之前的样式
 		showTypeAfter: "spread",//开始之后的样式
+		queueLeave: false,
 		callbackBefore: null,
 		callbackMiddle: null,
 		callbackAfter: null,
@@ -66,7 +67,6 @@
 				queueTimerProcess: false,//判断是否进入空队列的切换状态
 				queueLoop: true,//判断队列是否循环
 				showOpen: true,//是否展开
-				showNext: true,
 				pause: false,//是否暂停
 				thisTime: null,//判断展示时间的计时器
 				lastTime: null,//同上
@@ -93,23 +93,26 @@
 			}(obj);
 			this.Sketch.spawn = function  (linkObj) {
 				return function  () {
-					if(linkObj.status.showOpen === false){
-						linkObj.dots = getimgData(linkObj.Sketch, linkObj.option, linkObj.dots);
-					}else{
-						linkObj.dots = getimgData(linkObj.Sketch, linkObj.option);
+					if(!linkObj.status.pause){
+						linkObj.backgroundColorChange();
+						if(linkObj.status.showOpen === false){
+							linkObj.dots = getimgData(linkObj.Sketch, linkObj.option, linkObj.dots);
+						}else{
+							linkObj.dots = getimgData(linkObj.Sketch, linkObj.option);
+						}
+						linkObj.status.showOpen = linkObj.option.showOpen;
+						if(typeof(linkObj.option.callbackBefore) == "function"){
+							linkObj.option.callbackBefore(linkObj);
+							linkObj.option.callbackBefore = null;
+						}
 					}
-					linkObj.status.showOpen = linkObj.option.showOpen;
 				};
 			}(obj);
 			this.Sketch.update = function  (linkObj) {
 				return function  () {
-					linkObj.queueExecute();
-					linkObj.status.thisTime = +new Date();
 					if(!linkObj.status.pause){
-						//忘了为什么要有这个if判断了
-						if (linkObj.option.dotRadius === 0) {
-							linkObj.status.process = false;
-						}
+						linkObj.queueExecute();
+						linkObj.status.thisTime = +new Date();
 						var dotStatus = {
 							phase_1: false,
 							phase_2: false,
@@ -128,10 +131,22 @@
 									if(linkObj.status.thisTime - linkObj.status.lastTime > linkObj.option.showTime){
 										if(linkObj.option.showOpen){
 											linkObj.status.process = false;
+											if(typeof(linkObj.option.callbackMiddle) == "function"){
+												linkObj.option.callbackMiddle(linkObj);
+												linkObj.option.callbackMiddle = null;
+											}
 										}else{
 											linkObj.status.actionFinish = true;
+											if(typeof(linkObj.option.callbackAfter) == "function"){
+												linkObj.option.callbackAfter(linkObj);
+												linkObj.option.callbackAfter = null;
+											}
 										}
-
+									}
+								}else{
+									if(typeof(linkObj.option.callbackAfter) == "function"){
+										linkObj.option.callbackAfter(linkObj);
+										linkObj.option.callbackAfter = null;
 									}
 								}
 							}else{
@@ -141,9 +156,12 @@
 							if(dotStatus.phase_2){
 								if(linkObj.status.thisTime - linkObj.status.lastTime > linkObj.option.waitTime){
 									linkObj.status.actionFinish = true;
+									if(typeof(linkObj.option.callbackAfter) == "function"){
+										linkObj.option.callbackAfter(linkObj);
+									}
 								}
 							}else{
-								linkObj.status.actionFinish = false;
+								// linkObj.status.actionFinish = false;
 								linkObj.status.lastTime = +new Date();
 							}
 						}
@@ -153,14 +171,16 @@
 			this.Sketch.draw = function  (linkObj) {
 				return function  () {
 					if(!linkObj.status.pause){
-						if(!linkObj.status.actionFinish){
+						// if(!linkObj.status.actionFinish){
 							linkObj.Sketch.clear();
+							linkObj.Sketch.save();
 							for(var i = 0; i < linkObj.dots.length; i++){
 								linkObj.dots[i].paint(linkObj.Sketch);
 							}
-						}
+							linkObj.Sketch.restore();
+						// }
 					}
-					// showFPS();
+					showFPS();
 				};
 			}(obj);
 		},
@@ -192,7 +212,6 @@
 			if(arguments[0]){
 				this.option.text = arguments[0];
 			}
-			this.backgroundColorChange();
 			this.Sketch.spawn();
 			return this;
 		},
@@ -206,14 +225,6 @@
 			clearTimeout(this.status.queueTimer);
 			return this;
 		},
-		// /**
-		//  * 调制是否展开
-		//  * @return {obj} this
-		//  */
-		// showToggle: function  () {
-		// 	this.status.showOpen = !this.status.showOpen;
-		// 	return this;
-		// },
 		/**
 		 * 还在试验中的移动
 		 * @param  {double} x x偏移量
@@ -249,35 +260,32 @@
 		 * @return {null}
 		 */
 		queueExecute: function  () {
-			if(this.status.actionFinish){
+			if(this.status.actionFinish ){
 				if(this.queue.length > 0){
 					clearTimeout(this.status.queueTimer);
 					this.status.queueTimerProcess = false;
 					this.optionRestore();
-					if (!this.status.queueLoop) {
-						this.queueAnylize(this.queue.shift());
-					}else{
-						this.queueAnylize(this.queue[0]);
-						this.queue.push(this.queue.shift());
+					var tempQueueEle = this.queue.shift();
+					this.queueAnylize(tempQueueEle);
+					if (!this.option.queueLeave && this.status.queueLoop) {
+						this.queue.push(tempQueueEle);
 					}
 					this.status.process=true;
 					this.status.actionFinish = false;
-					this.backgroundColorChange();
 					this.Sketch.spawn();
 				}else{
-					if(!this.status.pause){
+					// if(!this.status.pause){
 						if(!this.status.queueTimerProcess){
 							this.status.queueTimerProcess = true;
 							var obj = this;
 							this.status.queueTimer = setTimeout(function(linkObj) {
 								return function  () {
 									linkObj.status.queueTimerProcess = false;
-									linkObj.backgroundColorChange();
 									linkObj.Sketch.spawn();
 								};
 						   }(obj), 4000);
 						}
-					}
+					// }
 				}
 			}
 		},
@@ -395,10 +403,7 @@
 		 */
 		init: function  (fontColorRandom, color, radius, focalLength) {
 			if(fontColorRandom){
-				// this.color.r = Math.random()*255;
-				// this.color.g = Math.random()*255;
-				// this.color.b = Math.random()*255;
-				this.color = "#" + Number(Math.floor(Math.random()*255)).toString(16) + Number(Math.floor(Math.random()*255)).toString(16) + Number(Math.floor(Math.random()*255)).toString(16);
+				this.color = "#" + ("0" + Number(Math.floor(Math.random()*255)).toString(16)).slice(-2) + ( "0" + Number(Math.floor(Math.random()*255)).toString(16)).slice(-2) + ("0" + Number(Math.floor(Math.random()*255)).toString(16)).slice(-2);
 			}else{
 				this.color = color;
 			}
@@ -421,6 +426,9 @@
 				case 'bottom' :
 					this.setPosition("n", Math.random()*canvas.width, canvas.height, Math.random()*this.focalLength*2 - this.focalLength);
 					break;
+				case 'nearby' :
+					this.setPosition("n", this.dx + (0.5-Math.random())*300, this.dy + (0.5-Math.random())*300, 0);
+					break;
 				case 'none' :
 					break;
 			}
@@ -434,6 +442,10 @@
 					break;
 				case 'bottom' :
 					this.setPosition("t", Math.random()*canvas.width, canvas.height, Math.random()*this.focalLength*2 - this.focalLength);
+					break;
+				case 'nearby' :
+					this.setPosition("t", this.dx + (0.5-Math.random())*300, this.dy + (0.5-Math.random())*300, 0);
+					break;
 				case 'none' :
 					break;
 			}
@@ -465,10 +477,24 @@
 		 * @return {string} 返回rgba颜色值
 		 */
 		getColor: function(alpha){
-			// if(this.color.r<0||this.color.g<0||this.color.b<0||this.color.r>255||this.color.g>255||this.color.b>255){
-			//	 return "rgba(" + this.option.fontColor.r +"," + this.option.fontColor.g +"," + this.option.fontColor.b + "," + alpha + ")";
-			// }
-			return this.color.colorToRgba(alpha);
+			var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+			var sColor = this.color;
+			var tempA = arguments[0] || 1;
+			if(reg.test(sColor)){
+				var aNum = sColor.replace(/#/,"").split("");
+				if(aNum.length === 3){
+					for(var i=0; i<aNum.length; i+=1){
+						sColor += (aNum[i].toString()+aNum[i].toString());
+					}
+				}
+				var sColorChange = [];
+				for(var j=1; j<7; j+=2 ){
+					sColorChange.push(parseInt("0x" + sColor.slice(j,j+2)));
+				}
+				return "rgba(" + sColorChange.join(",") + "," + tempA + ")";
+			}else{
+				throw "error color";
+			}
 		},
 		/**
 		 * 点的绘图事件
@@ -476,14 +502,14 @@
 		 * @return {null}
 		 */
 		paint:function(context){
-			context.save();
+			// context.save();
 			context.beginPath();
 			var scale = this.focalLength/(this.focalLength - this.z );//实际控制透明度
 			context.arc(context.width/2 + (this.x-context.width/2)*scale , context.height/2 + (this.y-context.height/2) * scale, this.radius*scale , 0 , 2*Math.PI);
 			context.fillStyle = this.getColor(scale);//获取颜色
 			context.fill();
 			context.closePath();
-			context.restore();
+			// context.restore();
 		},
 		/**
 		 * 点的移动事件
@@ -586,26 +612,20 @@
 		}
 		return result;
 	};
-	//这个函数的可以转入一个参数作为alpha值
-	String.prototype.colorToRgba = function () {
-		var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
-		var sColor = this.toLowerCase();
-		var tempA = arguments[0] || 1;
-		if(sColor && reg.test(sColor)){
-			var aNum = sColor.replace(/#/,"").split("");
-			if(aNum.length === 3){
-				for(var i=0; i<aNum.length; i+=1){
-					sColor += (aNum[i].toString()+aNum[i].toString());
-				}
-			}
-			var sColorChange = [];
-			for(var j=1; j<7; j+=2 ){
-				sColorChange.push(parseInt("0x" + sColor.slice(j,j+2)));
-			}
-			return "rgba(" + sColorChange.join(",") + "," + tempA + ")";
-		}else{
-			throw "error color";
-		}
+
+	var frameCount = 1,
+	    currentTime = 0,
+	    lastTime1 = 0,
+	    fps;
+	var showFPS = function  () {
+	    frameCount++;
+	    currentTime = new Date().getTime();
+	    if (currentTime - lastTime1 > 50){
+	        fps = frameCount / ((currentTime - lastTime1)/1000);
+	        lastTime1 = currentTime;
+	        frameCount = 0;
+	    }
+	    document.getElementById('fps').innerHTML = "FPS:" + fps.toFixed(2);
 	};
 
 	window[NAME] = particleChar;

@@ -10,16 +10,21 @@
 	<title>文字粒子化</title>
 	<link rel="stylesheet" href="css/demo.css">
 	<body>
-
+		<div id="fps" style="position: absolute;top: 0;left: 0;"></div>
 		<div id="container"></div>
 		<div id="test"></div>
 		<script src="js/sketch.min.js"></script>
 		<script src="js/particleChar.js"></script>
 		<script>
-var pc = new particleChar();
-pc.queueCreate("a","b");
-// var pc2 = new particleChar({container: "test",backgroundColorRandom: true});
+var pc = new particleChar({fontSize: 70,dotRadius: 2,dotDistance:5, showOpen: false, showNext: false,showTypeBefore: 'nearby', fontFamily: "Razer Header Light",yOffset: -200});
+// pc.queueCreate("a","b");
+setInterval(function function_name () {
+	var my = new Date();
+	pc.show(my.getHours() + ":" + ("0" + my.getMinutes()).slice(-2) + ":" + ("0"+my.getSeconds()).slice(-2));
+}, 1000);
+// var pc2 = new particleChar({container: "test",fontSize: 70,dotRadius: 2,dotDistance:5,showTypeBefore: "bottom",showTypeAfter: "bottom"});
 // pc2.queueCreate("这个如果很大会不会卡","3");
+
 		</script>
 	</body>
 </head>
