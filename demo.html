@@ -11,19 +11,21 @@
 	<link rel="stylesheet" href="css/demo.css">
 	<body>
 		<div id="fps" style="position: absolute;top: 0;left: 0;"></div>
-		<div id="container"></div>
+		<div id="particleChar"></div>
 		<div id="test"></div>
 		<script src="js/sketch.min.js"></script>
 		<script src="js/particleChar.js"></script>
 		<script>
-var pc = new particleChar({fontSize: 70,dotRadius: 2,dotDistance:5, showOpen: false, showNext: false,showTypeBefore: 'nearby', fontFamily: "Razer Header Light",yOffset: -200});
+var pc = new particleChar({fontSize: 140,dotRadius: 2,dotDistance:5, showOpen: false, showNext: false,showTypeBefore: 'nearby', fontFamily: "Razer Header Light",yOffset: -200,v1:0.2});
 // pc.queueCreate("a","b");
 setInterval(function function_name () {
 	var my = new Date();
 	pc.show(my.getHours() + ":" + ("0" + my.getMinutes()).slice(-2) + ":" + ("0"+my.getSeconds()).slice(-2));
 }, 1000);
-// var pc2 = new particleChar({container: "test",fontSize: 70,dotRadius: 2,dotDistance:5,showTypeBefore: "bottom",showTypeAfter: "bottom"});
-// pc2.queueCreate("这个如果很大会不会卡","3");
+var pc2 = new particleChar({container: "test",fontSize: 120,dotRadius: 1,dotDistance:5,showTypeBefore: "bottom",showTypeAfter: "bottom",fontColor: "#781299"});
+pc2.queueCreate("这个如果很大会不会卡","3",{text:"静止",showNext:false,showOpen:false,callbackAfter:function  (a) {
+	a.moveBy(0,-100,0);
+}});
 
 		</script>
 	</body>

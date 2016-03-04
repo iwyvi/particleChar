@@ -1,6 +1,6 @@
 /**
  * particleChar
- * 一个生成粒子化效果文字的js插件
+ * 一个基于Sketch.js的生成粒子化效果文字的js插件
  * by IwYvI
  * https://github.com/IwYvI
  * 初版时间：2015.7
@@ -17,7 +17,7 @@
 	 * @type {obj}
 	 */
 	var defaultOption = {
-		container: "container",
+		container: "particleChar",
 		text: "particleChar",
 		fontFamily: "微软雅黑",//字体
 		fontSize: 200,//字号
@@ -38,19 +38,20 @@
 		backgroundColorRandom: false,//是否随机背景颜色
 		showTypeBefore: "spread",//开始之前的样式
 		showTypeAfter: "spread",//开始之后的样式
-		queueLeave: false,
-		callbackBefore: null,
-		callbackMiddle: null,
-		callbackAfter: null,
+		queueLeave: false,//元素是否展示后离开队列
+		callbackBefore: null,//开始时的回调
+		callbackMiddle: null,//合并展示完成后的回调，在showOpen为true时才会被调用
+		callbackAfter: null,//一个动作完成后的回调
 	};
 
 	//主要类内容
 	var particleChar = function  (option) {
 		this.init(option);
+		return this.controller;
 	};
 	particleChar.prototype = {
 		/**
-		 * 私有 初始化
+		 * 整体初始化
 		 * @param  {obj} option 整体配置属性什么的
 		 * @return {null}
 		 */
@@ -71,12 +72,135 @@
 				thisTime: null,//判断展示时间的计时器
 				lastTime: null,//同上
 			};
-			this.setOption(option);
+			this.controller = {};//主控制器
+			this.initController();
+			this.controller.setOption(option);
 			this.initSketch();
-			this.queueClear();
+			this.controller.queueClear();
 		},
 		/**
-		 * 私有 初始化Sketch
+		 * 初始化控制器
+		 * @return {null}
+		 */
+		initController: function  () {
+			/**
+			 * 直接展示某个值
+			 * @param  {string} arguments[0] 可选值，若有则展示这个值
+			 * @return {obj} this
+			 */
+			this.controller.show =  function  (linkObj) {
+				return function  () {
+					linkObj.status.process = true;
+					linkObj.status.actionFinish = false;
+					linkObj.queue.length = 0;
+					linkObj.status.queueTimerProcess = false;
+					clearTimeout(linkObj.status.queueTimer);
+					linkObj.optionRestore();
+					if(arguments[0]){
+						linkObj.option.text = arguments[0];
+					}
+					linkObj.Sketch.spawn();
+					return this;
+				};
+			}(this);
+			/**
+			 * 修改设置
+			 * @param {obj} option 设置内容
+			 * @return {obj} this
+			 */
+			this.controller.setOption = function  (linkObj) {
+				return function  (option) {
+					for(var key in option){
+						if(typeof(linkObj.option[key]) !== undefined){
+							linkObj.option[key] = option[key];
+						}
+					}
+					return this;
+				};
+			}(this);
+			/**
+			 * 暂停和恢复
+			 * @return {obj} this
+			 */
+			this.controller.pause = function  (linkObj) {
+				return function () {
+					linkObj.status.pause = !linkObj.status.pause;
+					linkObj.status.queueTimerProcess = false;
+					clearTimeout(linkObj.status.queueTimer);
+					return this;
+				};
+			}(this);
+			/**
+			 * 还在试验中的移动
+			 * @param  {double} x x偏移量
+			 * @param  {double} y y偏移量
+			 * @param  {double} z z偏移量
+			 * @return {obj} this
+			 */
+			this.controller.moveBy = function (linkObj) {
+				return function  (x, y, z) {
+					if(linkObj.option.showOpen === false && linkObj.option.showNext === false){
+						for(var i = 0; i < linkObj.dots.length; i++){
+							linkObj.dots[i].setPosition("d", linkObj.dots[i].dx + x, linkObj.dots[i].dy + y, linkObj.dots[i].dz + z);
+						}
+					}
+					return this;
+				};
+			}(this);
+			/**
+			 * 创建队列
+			 * 参数为对象或者字符串
+			 * @return {obj} this
+			 */
+			this.controller.queueCreate = function  (linkObj) {
+				return function  () {
+					if (arguments[0]) {
+						for(var i = 0; i < arguments.length ; i++){
+							linkObj.queue.push(arguments[i]);
+						}
+						linkObj.status.queueTimerProcess = false;
+						clearTimeout(linkObj.status.queueTimer);
+					}
+					return this;
+				};
+			}(this);
+			/**
+			 * 队列清空
+			 * @return {obj} this
+			 */
+			this.controller.queueClear =function  (linkObj) {
+				return function  () {
+					linkObj.status.process = false;
+					linkObj.status.actionFinish = true;
+					linkObj.queue.length = 0;
+					linkObj.status.queueTimerProcess = false;
+					clearTimeout(linkObj.status.queueTimer);
+					linkObj.optionRestore();
+					return this;
+				};
+			}(this);
+			/**
+			 * 重绘
+			 * @return {null}
+			 */
+			this.controller.repaint = function  (linkObj) {
+				return function  () {
+					linkObj.status.showOpen = false;
+					var tempShowType = linkObj.option.showTypeBefore;
+					linkObj.option.showTypeBefore = "nearby";
+					linkObj.Sketch.spawn();
+					linkObj.option.showTypeBefore = tempShowType;
+					return this;
+				};
+			}(this);
+			this.controller.getText = function  (text) {
+				return function  () {
+					return text;
+				};
+			}(this.option.text);
+		},
+		/**
+		 * 初始化Sketch
 		 * @return {null}
 		 */
 		initSketch: function  () {
@@ -102,7 +226,7 @@
 						}
 						linkObj.status.showOpen = linkObj.option.showOpen;
 						if(typeof(linkObj.option.callbackBefore) == "function"){
-							linkObj.option.callbackBefore(linkObj);
+							linkObj.option.callbackBefore(linkObj.controller);
 							linkObj.option.callbackBefore = null;
 						}
 					}
@@ -127,37 +251,42 @@
 						//点事件处理
 						if(linkObj.status.process){
 							if(dotStatus.phase_1){
-								if(linkObj.option.showNext){
+								// if(linkObj.option.showNext){
 									if(linkObj.status.thisTime - linkObj.status.lastTime > linkObj.option.showTime){
 										if(linkObj.option.showOpen){
 											linkObj.status.process = false;
 											if(typeof(linkObj.option.callbackMiddle) == "function"){
-												linkObj.option.callbackMiddle(linkObj);
+												linkObj.option.callbackMiddle(linkObj.controller);
 												linkObj.option.callbackMiddle = null;
 											}
 										}else{
-											linkObj.status.actionFinish = true;
+											if(linkObj.option.showNext){
+												linkObj.status.actionFinish = true;
+											}
 											if(typeof(linkObj.option.callbackAfter) == "function"){
-												linkObj.option.callbackAfter(linkObj);
+												linkObj.option.callbackAfter(linkObj.controller);
 												linkObj.option.callbackAfter = null;
 											}
 										}
 									}
-								}else{
-									if(typeof(linkObj.option.callbackAfter) == "function"){
-										linkObj.option.callbackAfter(linkObj);
-										linkObj.option.callbackAfter = null;
-									}
-								}
+								// }else{
+								// 	if((linkObj.option.callbackAfter) == "function"){
+								// 		linkObj.option.callbackAfter(linkObj.controller);
+								// 		linkObj.option.callbackAfter = null;
+								// 	}
+								// }
 							}else{
 								linkObj.status.lastTime = +new Date();
 							}
 						}else{
 							if(dotStatus.phase_2){
 								if(linkObj.status.thisTime - linkObj.status.lastTime > linkObj.option.waitTime){
-									linkObj.status.actionFinish = true;
+									if(linkObj.option.showNext){
+										linkObj.status.actionFinish = true;
+									}
 									if(typeof(linkObj.option.callbackAfter) == "function"){
-										linkObj.option.callbackAfter(linkObj);
+										linkObj.option.callbackAfter(linkObj.controller);
+										linkObj.option.callbackAfter = null;
 									}
 								}
 							}else{
@@ -171,92 +300,18 @@
 			this.Sketch.draw = function  (linkObj) {
 				return function  () {
 					if(!linkObj.status.pause){
-						// if(!linkObj.status.actionFinish){
-							linkObj.Sketch.clear();
-							linkObj.Sketch.save();
-							for(var i = 0; i < linkObj.dots.length; i++){
-								linkObj.dots[i].paint(linkObj.Sketch);
-							}
-							linkObj.Sketch.restore();
-						// }
+						linkObj.Sketch.clear();
+						linkObj.Sketch.save();
+						for(var i = 0; i < linkObj.dots.length; i++){
+							linkObj.dots[i].paint(linkObj.Sketch);
+						}
+						linkObj.Sketch.restore();
 					}
-					showFPS();
 				};
 			}(obj);
 		},
 		/**
-		 * 修改设置
-		 * @param {obj} option 设置内容
-		 * @return {obj} this
-		 */
-		setOption: function  (option) {
-			for(var key in option){
-				if(typeof(this.option[key]) !== undefined){
-					this.option[key] = option[key];
-				}
-			}
-			return this;
-		},
-		/**
-		 * 直接展示某个值
-		 * @param  {string} arguments[0] 可选值，若有则展示这个值
-		 * @return {obj} this
-		 */
-		show: function  () {
-			this.status.process = true;
-			this.status.actionFinish = false;
-			this.queue.length = 0;
-			this.status.queueTimerProcess = false;
-			clearTimeout(this.status.queueTimer);
-			this.optionRestore();
-			if(arguments[0]){
-				this.option.text = arguments[0];
-			}
-			this.Sketch.spawn();
-			return this;
-		},
-		/**
-		 * 暂停和恢复
-		 * @return {obj} this
-		 */
-		pause: function  () {
-			this.status.pause = !this.status.pause;
-			this.status.queueTimerProcess = false;
-			clearTimeout(this.status.queueTimer);
-			return this;
-		},
-		/**
-		 * 还在试验中的移动
-		 * @param  {double} x x偏移量
-		 * @param  {double} y y偏移量
-		 * @param  {double} z z偏移量
-		 * @return {obj} this
-		 */
-		moveBy: function  (x, y, z) {
-			if(this.option.showOpen === false && this.option.showNext === false){
-				for(var i = 0; i < this.dots.length; i++){
-					this.dots[i].setPosition("d", this.dots[i].dx + x, this.dots[i].dy + y, this.dots[i].dz + z);
-				}
-			}
-			return this;
-		},
-		/**
-		 * 创建队列
-		 * 参数为对象或者字符串
-		 * @return {obj} this
-		 */
-		queueCreate: function  () {
-			if (arguments[0]) {
-				for(var i = 0; i < arguments.length ; i++){
-					this.queue.push(arguments[i]);
-				}
-				this.status.queueTimerProcess = false;
-				clearTimeout(this.status.queueTimer);
-			}
-			return this;
-		},
-		/**
-		 * 私有 队列事件处理
+		 * 队列事件处理
 		 * @return {null}
 		 */
 		queueExecute: function  () {
@@ -290,7 +345,7 @@
 			}
 		},
 		/**
-		 * 私有 队列内容分析
+		 * 队列内容分析
 		 * @param  {obj} obj 队列内容
 		 * @return {null}
 		 */
@@ -314,23 +369,11 @@
 					if(!optionSaveStatus){
 						this.optionSave();
 					}
-					this.setOption(obj);
+					this.controller.setOption(obj);
 					break;
 				default:
 					break;
 			}
-		},
-		/**
-		 * 队列清空
-		 * @return {obj} this
-		 */
-		queueClear: function  () {
-			this.status.process = false;
-			this.status.actionFinish = true;
-			this.queue.length = 0;
-			this.status.queueTimerProcess = false;
-			clearTimeout(this.status.queueTimer);
-			return this;
 		},
 		/**
 		 * 背景色修改
@@ -360,7 +403,7 @@
 			if(this.tempOption.length > 0){
 				this.option = deepCopy(this.tempOption.pop());
 			}
-		}
+		},
 
 	};
 
@@ -369,8 +412,6 @@
 	 * @param {int} centerX 有序态位置
 	 * @param {int} centerY 有序态位置
 	 * @param {int} centerZ 有序态位置
-	 * @param {int} radius 点半径
-	 * @param {int} focalLength 焦距（没什么卵用）
 	 */
 	var Dot = function(centerX , centerY , centerZ){
 		this.dx = centerX;
@@ -382,23 +423,23 @@
 		this.x = centerX;
 		this.y = centerY;
 		this.z = centerZ;//当前坐标
-		this.radius = 0;
-		this.focalLength = 250;
+		this.radius = 0;//点半径
+		this.focalLength = 250;//焦距
 		this.status = {
-			ready: false,
-			phase_1: false,
-			phase_2: false,
-			finish: false,
+			ready: false,//点准备
+			phase_1: false,//第一阶段（合并）
+			phase_2: false,//第二阶段（散开）
+			finish: false,//完成
 		};
 		this.color = "#76A4D4";
 	};
 	Dot.prototype = {
 		/**
 		 * 点的初始化
-		 * @param {obj} canvas 绘图canvas
-		 * @param  {string} methodBefore 之前扩散的方式
-		 * @param  {string} methodAfter  之后扩散的方式
-		 * @param {obj} color 文字颜色
+		 * @param  {bool} fontColorRandom 颜色随机
+		 * @param  {string} color           颜色
+		 * @param  {double} radius          半径
+		 * @param  {double} focalLength     焦距
 		 * @return {null}
 		 */
 		init: function  (fontColorRandom, color, radius, focalLength) {
@@ -414,17 +455,25 @@
 			this.status.phase_2 = false;
 			this.status.finish = false;
 		},
+		/**
+		 * 初始化展示样式
+		 * @param {obj} canvas         绘图canvas
+		 * @param {string} showTypeBefore 合并样式
+		 * @param {string} showTypeAfter  散开样式
+		 */
 		setShowType: function  (canvas, showTypeBefore,showTypeAfter) {
+			var width = canvas.width;
+			var height = canvas.height;
 			switch(showTypeBefore){
 				default :
 				case 'spread' :
-					this.setPosition("n", Math.random()*canvas.width,Math.random()*canvas.height,Math.random()*this.focalLength*2 - this.focalLength);
+					this.setPosition("n", Math.random()*width,Math.random()*height,Math.random()*this.focalLength*2 - this.focalLength);
 					break;
 				case 'top' :
-					this.setPosition("n", Math.random()*canvas.width,0,Math.random()*this.focalLength*2 - this.focalLength);
+					this.setPosition("n", Math.random()*width,0,Math.random()*this.focalLength*2 - this.focalLength);
 					break;
 				case 'bottom' :
-					this.setPosition("n", Math.random()*canvas.width, canvas.height, Math.random()*this.focalLength*2 - this.focalLength);
+					this.setPosition("n", Math.random()*width, height, Math.random()*this.focalLength*2 - this.focalLength);
 					break;
 				case 'nearby' :
 					this.setPosition("n", this.dx + (0.5-Math.random())*300, this.dy + (0.5-Math.random())*300, 0);
@@ -435,13 +484,13 @@
 			switch(showTypeAfter){
 				default :
 				case 'spread' :
-					this.setPosition("t", Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*this.focalLength*2 - this.focalLength);
+					this.setPosition("t", Math.random()*width, Math.random()*height, Math.random()*this.focalLength*2 - this.focalLength);
 					break;
 				case 'top' :
-					this.setPosition("t", Math.random()*canvas.width, 0,Math.random()*this.focalLength*2 - this.focalLength);
+					this.setPosition("t", Math.random()*width, 0,Math.random()*this.focalLength*2 - this.focalLength);
 					break;
 				case 'bottom' :
-					this.setPosition("t", Math.random()*canvas.width, canvas.height, Math.random()*this.focalLength*2 - this.focalLength);
+					this.setPosition("t", Math.random()*width, height, Math.random()*this.focalLength*2 - this.focalLength);
 					break;
 				case 'nearby' :
 					this.setPosition("t", this.dx + (0.5-Math.random())*300, this.dy + (0.5-Math.random())*300, 0);
@@ -450,6 +499,13 @@
 					break;
 			}
 		},
+		/**
+		 * 设置点位置
+		 * @param {string} type 点位置类型
+		 * @param {double} x    x
+		 * @param {double} y    y
+		 * @param {double} z    z
+		 */
 		setPosition: function  (type, x, y, z) {
 			switch(type){
 				case "n":
@@ -472,8 +528,8 @@
 			}
 		},
 		/**
-		 * [getColor 获取点的颜色值]
-		 * @param {float} alpha 透明度
+		 * getColor 获取点的颜色值
+		 * @param {double} alpha 透明度
 		 * @return {string} 返回rgba颜色值
 		 */
 		getColor: function(alpha){
@@ -502,14 +558,12 @@
 		 * @return {null}
 		 */
 		paint:function(context){
-			// context.save();
 			context.beginPath();
 			var scale = this.focalLength/(this.focalLength - this.z );//实际控制透明度
 			context.arc(context.width/2 + (this.x-context.width/2)*scale , context.height/2 + (this.y-context.height/2) * scale, this.radius*scale , 0 , 2*Math.PI);
 			context.fillStyle = this.getColor(scale);//获取颜色
 			context.fill();
 			context.closePath();
-			// context.restore();
 		},
 		/**
 		 * 点的移动事件
@@ -611,21 +665,6 @@
 			result[key] = typeof source[key]=== 'object' ? deepCopy(source[key]):source[key];
 		}
 		return result;
-	};
-
-	var frameCount = 1,
-	    currentTime = 0,
-	    lastTime1 = 0,
-	    fps;
-	var showFPS = function  () {
-	    frameCount++;
-	    currentTime = new Date().getTime();
-	    if (currentTime - lastTime1 > 50){
-	        fps = frameCount / ((currentTime - lastTime1)/1000);
-	        lastTime1 = currentTime;
-	        frameCount = 0;
-	    }
-	    document.getElementById('fps').innerHTML = "FPS:" + fps.toFixed(2);
 	};
 
 	window[NAME] = particleChar;
