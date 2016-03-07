@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+	<meta charset="UTF-8">
+	<meta name="format-detection" content="telephone=no"/>
+	<meta name="apple-mobile-app-status-bar-style" content="black" />
+	<meta name="apple-touch-fullscreen" content="YES" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,  minimum-scale=1.0, maximum-scale=1.0" />
+	<title>文档 | particleChar.js</title>
+	<link rel="stylesheet" href="css/doc.css">
+	<script src="js/sketch.min.js"></script>
+	<script src="js/particleChar.js"></script>
+</head>
+<body>
+	<header>
+		<h1 id="title">particleChar.js</h1>
+		<h3 id="subtitle">一个使用canvas实现生成文字粒子化效果的插件</h3>
+		<div id="homepage">
+			<a href="http://iwyvi.github.io/particleChar" class="button">项目主页</a>
+		</div>
+	</header>
+	<div class="container">
+		<div class="card">
+			<div class="cardtitle">开始使用</div>
+			<div class="cardcontent">
+				<p>particleChar使用canvas实现文字粒子化展示效果</p>
+				<p>其中canvas绘图使用了<a href="https://github.com/soulwire/sketch.js">sketch.js</a>项目</p>
+				<p>首先引入particleChar.js，然后在body最后或者dom加载完成后创建<b>particleChar</b>对象</p>
+				<p><b>var a = new particleChar();</b>（默认以id为particleChar的元素为展示元素，详细参数见后面的介绍）</p>
+				<p><b>a.queueCreate("a","b");</b>（如此即可创建展示队列）</p>
+			</div>
+			<div class="cardcontent">
+				<div id="start"></div>
+<script>
+	var start = new particleChar({container: "start",showOpen:false,showTypeBefore:"nearby"});
+	start.queueCreate("particleChar.js","开始使用","首先引入文件","然后创建对象","之后创建队列","或者直接展示");
+</script>
+			</div>
+		</div>
+		<div class="card">
+			<div class="cardtitle">API</div>
+			<div class="cardcontent">
+				<p><b>particleChar.show([string])</b>可选参数，展示初始内容或者参数里的内容</p>
+				<p><b>particleChar.pause()</b>暂停或者恢复</p>
+				<p><b>particleChar.setOption(option)</b>必选参数，参数为一个包含设置内容的对象</p>
+				<p><b>particleChar.moveBy(x, y, z, callback);</b>在showOpen和showNext均为false时才可以调用，移动粒子位置，同时可以添加回调函数</p>
+				<p><b>particleChar.queueCreate([string|obj]);</b></p>
+				<p><b>particleChar.queueClear();</b></p>
+				<p><b>particleChar.repaint();</b></p>
+				<p><b>particleChar.getText();</b></p>
+			</div>
+		</div>
+	</div>
+</body>
