@@ -30,7 +30,7 @@
 		yOffset: 0,//y偏移
 		v1: 0.1,//组成速度
 		v2: 0.1,//散开速度
-		showTime: 700,//展示时间
+		showTime: 1000,//展示时间
 		showOpen: true,//是否展开
 		showNext: true,//是否展示下一个
 		waitTime: 0,//队列间等待时间
@@ -63,7 +63,7 @@
 			this.tempOption = [];//样式栈
 			this.status = {
 				process: true,//过程，true为从乱序到文字，false为从文字到乱序
-				actionFinish: false,//当前动作是否完成
+				actionFinish: true,//当前动作是否完成
 				queueTimer: null,//空队列状态的计时器
 				queueTimerProcess: false,//判断是否进入空队列的切换状态
 				queueLoop: true,//判断队列是否循环
@@ -97,7 +97,7 @@
 					clearTimeout(linkObj.status.queueTimer);
 					linkObj.optionRestore();
 					if(arguments[0]){
-						linkObj.option.text = arguments[0];
+						linkObj.option.text = arguments[0].toString();
 					}
 					linkObj.Sketch.spawn();
 					return this;
@@ -138,10 +138,11 @@
 			 * @return {obj} this
 			 */
 			this.controller.moveBy = function (linkObj) {
-				return function  (x, y, z) {
+				return function  (x, y, z, callback) {
 					if(linkObj.option.showOpen === false && linkObj.option.showNext === false){
 						for(var i = 0; i < linkObj.dots.length; i++){
 							linkObj.dots[i].setPosition("d", linkObj.dots[i].dx + x, linkObj.dots[i].dy + y, linkObj.dots[i].dz + z);
+							linkObj.option.callbackAfter = typeof(callback) == "function" ? callback : null;
 						}
 					}
 					return this;
@@ -193,11 +194,16 @@
 					return this;
 				};
 			}(this);
-			this.controller.getText = function  (text) {
+			this.controller.getText = function  (linkObj) {
 				return function  () {
-					return text;
+					return linkObj.option.text;
 				};
-			}(this.option.text);
+			}(this);
+			// this.controller.debug = function  (linkObj) {
+			// 	return function  () {
+			// 		return linkObj;
+			// 	};
+			// }(this);
 		},
 		/**
 		 * 初始化Sketch
@@ -218,6 +224,10 @@
 			this.Sketch.spawn = function  (linkObj) {
 				return function  () {
 					if(!linkObj.status.pause){
+						if(typeof(linkObj.option.callbackBefore) == "function"){
+							linkObj.option.callbackBefore(linkObj.controller);
+							linkObj.option.callbackBefore = null;
+						}
 						linkObj.backgroundColorChange();
 						if(linkObj.status.showOpen === false){
 							linkObj.dots = getimgData(linkObj.Sketch, linkObj.option, linkObj.dots);
@@ -225,10 +235,6 @@
 							linkObj.dots = getimgData(linkObj.Sketch, linkObj.option);
 						}
 						linkObj.status.showOpen = linkObj.option.showOpen;
-						if(typeof(linkObj.option.callbackBefore) == "function"){
-							linkObj.option.callbackBefore(linkObj.controller);
-							linkObj.option.callbackBefore = null;
-						}
 					}
 				};
 			}(obj);
@@ -238,43 +244,36 @@
 						linkObj.queueExecute();
 						linkObj.status.thisTime = +new Date();
 						var dotStatus = {
-							phase_1: false,
-							phase_2: false,
-							finish: false,
+							phase_1: true,
+							phase_2: true,
+							finish: true,
 						};
 						for(var i = 0; i < linkObj.dots.length; i++){
 							linkObj.dots[i].move(linkObj.status.process,linkObj.option.v1, linkObj.option.v2);
-							dotStatus.phase_1 = (dotStatus.phase_1 ===  false) ? linkObj.dots[i].status.phase_1 : true;
-							dotStatus.phase_2 = (dotStatus.phase_2 === false) ? linkObj.dots[i].status.phase_2 : true;
-							dotStatus.finish = (dotStatus.finish === false) ? linkObj.dots[i].status.finish : true;
+							dotStatus.phase_1 = (dotStatus.phase_1 ===  true) ? linkObj.dots[i].status.phase_1 : false;
+							dotStatus.phase_2 = (dotStatus.phase_2 === true) ? linkObj.dots[i].status.phase_2 : false;
+							dotStatus.finish = (dotStatus.finish === true) ? linkObj.dots[i].status.finish : false;
 						}
 						//点事件处理
 						if(linkObj.status.process){
 							if(dotStatus.phase_1){
-								// if(linkObj.option.showNext){
-									if(linkObj.status.thisTime - linkObj.status.lastTime > linkObj.option.showTime){
-										if(linkObj.option.showOpen){
-											linkObj.status.process = false;
-											if(typeof(linkObj.option.callbackMiddle) == "function"){
-												linkObj.option.callbackMiddle(linkObj.controller);
-												linkObj.option.callbackMiddle = null;
-											}
-										}else{
-											if(linkObj.option.showNext){
-												linkObj.status.actionFinish = true;
-											}
-											if(typeof(linkObj.option.callbackAfter) == "function"){
-												linkObj.option.callbackAfter(linkObj.controller);
-												linkObj.option.callbackAfter = null;
-											}
+								if(linkObj.status.thisTime - linkObj.status.lastTime > linkObj.option.showTime){
+									if(linkObj.option.showOpen){
+										linkObj.status.process = false;
+										if(typeof(linkObj.option.callbackMiddle) == "function"){
+											linkObj.option.callbackMiddle(linkObj.controller);
+											linkObj.option.callbackMiddle = null;
+										}
+									}else{
+										if(linkObj.option.showNext){
+											linkObj.status.actionFinish = true;
+										}
+										if(typeof(linkObj.option.callbackAfter) == "function"){
+											linkObj.option.callbackAfter(linkObj.controller);
+											linkObj.option.callbackAfter = null;
 										}
 									}
-								// }else{
-								// 	if((linkObj.option.callbackAfter) == "function"){
-								// 		linkObj.option.callbackAfter(linkObj.controller);
-								// 		linkObj.option.callbackAfter = null;
-								// 	}
-								// }
+								}
 							}else{
 								linkObj.status.lastTime = +new Date();
 							}
@@ -315,7 +314,7 @@
 		 * @return {null}
 		 */
 		queueExecute: function  () {
-			if(this.status.actionFinish ){
+			if(this.status.actionFinish){
 				if(this.queue.length > 0){
 					clearTimeout(this.status.queueTimer);
 					this.status.queueTimerProcess = false;
@@ -614,17 +613,19 @@
 		var dots = oldDots || [];
 		var oldLength = dots.length;
 		var count = 0;
+		var xOffset = Math.abs(option.xOffset) > 1 ? option.xOffset : context.width/2 * option.xOffset;
+		var yOffset = Math.abs(option.yOffset) > 1 ? option.yOffset : context.height/2 * option.yOffset;
 		for(var x = 0; x < imgData.width; x +=  option.dotDistance ){
 			for(var y = 0; y < imgData.height; y += option.dotDistance ){
 				var i = (y*imgData.width + x)*4;//getImageData的数据结构rgba
 				if(imgData.data[i] >= 128){
 					if(count < oldLength){
-						dots[count].setPosition("d", x + option.xOffset , y +option.yOffset , 0 );
+						dots[count].setPosition("d", x + xOffset , y + yOffset , 0 );
 						dots[count].init(option.fontColorRandom, option.fontColor, option.dotRadius, option.focalLength);
 						dots[count].setShowType(context, "none",option.showTypeAfter);
 						count++;
 					}else{
-						var dot = new Dot(x + option.xOffset , y +option.yOffset , 0);
+						var dot = new Dot(x + xOffset , y + yOffset , 0);
 						dot.init(option.fontColorRandom, option.fontColor, option.dotRadius, option.focalLength);
 						dot.setShowType(context, option.showTypeBefore,option.showTypeAfter);
 						dots.push(dot);
@@ -647,7 +648,7 @@
 	var drawText = function (option,context){
 		context.save();
 		context.font = option.fontSize + "px " + option.fontFamily;
-		context.fillStyle = "rgba(168,168,168,1)";
+		context.fillStyle = "rgb(168,168,168)";
 		context.textAlign = "center";
 		context.textBaseline = "middle";
 		context.fillText(option.text , context.width/2 , context.height/2);
