@@ -9,6 +9,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0,  minimum-scale=1.0, maximum-scale=1.0" />
 	<title>文档 | particleChar.js</title>
 	<link rel="stylesheet" href="css/doc.css">
+	<link rel="stylesheet" href="css/monokai-sublime.css">
+	<script src="js/highlight.pack.js"></script>
 	<script src="js/sketch.min.js"></script>
 	<script src="js/particleChar.js"></script>
 </head>
@@ -32,24 +34,68 @@
 			</div>
 			<div class="cardcontent">
 				<div id="start"></div>
-<script>
-	var start = new particleChar({container: "start",showOpen:false,showTypeBefore:"nearby"});
-	start.queueCreate("particleChar.js","开始使用","首先引入文件","然后创建对象","之后创建队列","或者直接展示");
-</script>
 			</div>
 		</div>
 		<div class="card">
 			<div class="cardtitle">API</div>
 			<div class="cardcontent">
-				<p><b>particleChar.show([string])</b>可选参数，展示初始内容或者参数里的内容</p>
+				<p><b>particleChar.show([string])</b>展示。可选参数，展示初始内容或者参数里的内容</p>
 				<p><b>particleChar.pause()</b>暂停或者恢复</p>
-				<p><b>particleChar.setOption(option)</b>必选参数，参数为一个包含设置内容的对象</p>
-				<p><b>particleChar.moveBy(x, y, z, callback);</b>在showOpen和showNext均为false时才可以调用，移动粒子位置，同时可以添加回调函数</p>
-				<p><b>particleChar.queueCreate([string|obj]);</b></p>
-				<p><b>particleChar.queueClear();</b></p>
-				<p><b>particleChar.repaint();</b></p>
-				<p><b>particleChar.getText();</b></p>
+				<p><b>particleChar.setOption(option)</b>修改设置。必选参数，参数为一个包含设置内容的对象</p>
+				<p><b>particleChar.moveBy(x, y, z, callback);</b>移动。在showOpen和showNext均为false时才可以调用，移动粒子位置，同时可以添加回调函数</p>
+				<p><b>particleChar.queueCreate([string|obj]);</b>添加队列。参数为字符串或者包含参数的对象，参数长度至少为一</p>
+				<p><b>particleChar.queueClear();</b>清空队列</p>
+				<p><b>particleChar.repaint();</b>重绘。用于更新位置或者参数</p>
+				<p><b>particleChar.getText();</b>获得当前显示的字符内容</p>
 			</div>
 		</div>
+		<div class="card">
+			<div class="cardtitle">参数介绍</div>
+			<p>表中给出的值为默认值</p>
+			<pre>
+			<code class="json">{
+  "container": "particleChar",  //容器，只有创建对象时才有用（dom的id值）
+  "text": "particleChar",  //显示文字
+  "fontFamily": "微软雅黑",  //字体
+  "fontSize": 200,  //字号(推荐值域60-400)
+  "fontColor": "#76A4D4",  //字体颜色（只支持hex颜色）
+  "fontColorRandom": false,  //是否随机文字颜色（每个点的颜色都不一样）
+  "dotRadius": 5,  //点半径（推荐值域2-8）
+  "dotDistance": 12,  //采样距离（推荐值域4-20）
+  "focalLength": 250,  //焦距
+  "xOffset": 0,  //x偏移（如果值的绝对值大于1时单位为像素，小于1时为比例）
+  "yOffset": 0,  //y偏移
+  "v1": 0.1,  //组成速度（推荐值域0.01-0.2）
+  "v2": 0.1,  //散开速度（推荐值域0.01-0.2）
+  "showTime": 1000,  //展示时间
+  "showOpen": true,  //是否展开
+  "showNext": true,  //是否展示下一个
+  "waitTime": 0,  //队列间等待时间
+  "backgroundColor": "transparent",  //背景颜色（默认transparent是透明，可以指定hex颜色）
+  "backgroundColorRandom": false,  //是否随机背景颜色
+  "showTypeBefore": "spread",  //合并之前的样式（样式支持内容：<b>spread</b>随机散开，<b>top</b>顶部随机散开，<b>bottom</b>底部随机散开，<b>nearby</b>目标位置附近随机散开）
+  "showTypeAfter": "spread",  //展开之后的样式
+  "queueLeave": false,  //元素是否展示后离开队列
+  "callbackBefore": null,  //开始时的回调（传入函数）
+  "callbackMiddle": null,  //合并展示完成后的回调，在showOpen为true时才会被调用
+  "callbackAfter": null,  //一个动作完成后的回调
+  "optionSave": false,  //仅在添加队列时有效，将此次内容参数保存为默认参数
+}</code>
+			</pre>
+			<p>在创建对象时传入的参数为默认值，队列中修改参数如果optionSave为true是将此次出现的参数保存为默认参数，否则不会保存参数</p>
+			<p>使用参数时仅将自己需要的内容放入即可，不需要全部放入</p>
+		</div>
+		<div class="card">
+			<div class="cardtitle">关于</div>
+			<p>js新手练习，最初的版本参考了网上canvas的一些操作，后来感觉自己已经掌控不了逐渐增加的代码行数，最后大概就是这样了，肯定还会有些bug，但是也基本上成型了</p>
+			<p>制作：<a href="https://github.com/IwYvI">IwYvI</a></p>
+			<p>初版时间：2015.7.25</p>
+			<p>修改时间：2016.3.8</p>
+		</div>
 	</div>
+<script>
+	var start = new particleChar({container: "start",showOpen:false,showTypeBefore:"nearby"});
+	start.queueCreate("particleChar.js","开始使用","首先引入文件","然后创建对象","之后创建队列","或者直接展示");
+	hljs.initHighlightingOnLoad();
+</script>
 </body>
