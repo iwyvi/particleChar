@@ -135,6 +135,10 @@ header{
   margin: -50px auto 0;
 }
 
+.hljs{
+  font-family: "Consolas";
+}
+
 .card{
   min-height: 200px;
   width: 96%;
@@ -173,8 +177,12 @@ header{
 }
 .card b{
   padding-left: 5px;
+  padding-top: 2px;
+  padding-bottom: 2px;
   padding-right: 5px;
-  background-color: #000;
+  margin-left: 3px;
+  margin-right: 3px;
+  background-color: #333;
   border-radius: 5px;
 }
 
@@ -205,5 +213,21 @@ header{
   .cardpart{
     width: 100%;
     float: none;
+  }
+}
+@media screen and (max-width: 580px){
+  #title{
+    font-size: 60px;
+  }
+  #subtitle{
+    font-size: 20px;
+  }
+}
+@media screen and (max-width: 460px){
+  #title{
+    font-size: 40px;
+  }
+  #subtitle{
+    font-size: 16px;
   }
 }
