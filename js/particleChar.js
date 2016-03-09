@@ -211,11 +211,15 @@
 		 */
 		initSketch: function  () {
 			var obj = this;
+			var ele = document.getElementById(this.option.container);
 			this.Sketch = Sketch.create({
 				autopause: false,
 				autoclear: false,
-				container: document.getElementById( this.option.container )
+				container: ele
 			});
+			var canvas = ele.getElementsByClassName("sketch")[0];
+			canvas.style.width = "100%";
+			canvas.style.height = "100%";
 			this.Sketch.setup = function  (linkObj) {
 				return function  () {
 					linkObj.Sketch.spawn();
