@@ -93,6 +93,22 @@ body{
   background-color: #2a2a2a;
   overflow: hidden;
 }
+.homepage{
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 99;
+	width: 100px;
+	height: 40px;
+	text-align: center;
+	font-size: 16px;
+	line-height: 40px;
+	background-color: #1a1a1a;
+	border-bottom-right-radius: 10px;
+}
+.homepage a{
+	color: #bbb;
+}
 #particleChar{
 	position: absolute;
 	top: 0;
